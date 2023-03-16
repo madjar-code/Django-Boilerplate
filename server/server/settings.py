@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',
+    'django_rest_passwordreset',
     'corsheaders',
     'drf_yasg',
 ]
@@ -52,7 +53,24 @@ REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
     'DEFAULT_PARSER_CLASSES': (
         'rest_framework.parsers.JSONParser',
-    )   
+        'rest_framework.parsers.MultiPartParser',
+        'rest_framework.parsers.FormParser',
+    )
+}
+
+REST_USE_JWT = True
+
+SWAGGER_SETTINGS={
+    'SHOW_REQUEST_HEADERS': True,
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header'
+        }
+    },
+    # 'USE_SESSION_AUTH': False,
+    # 'JSON_EDITOR': True,
 }
 
 CORS_ORIGIN_ALLOW_ALL = True
@@ -140,3 +158,5 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'users.User'
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
