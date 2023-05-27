@@ -29,11 +29,8 @@ class UUIDModel(models.Model):
     Abstract model for uuid
     """
     id = models.UUIDField(
-        primary_key = True,
-        default = uuid.uuid4,
-        db_index = True,
-        editable = False
-    )
+        primary_key = True, default = uuid.uuid4,
+        db_index = True,editable = False) 
 
     class Meta:
         abstract = True
@@ -44,22 +41,19 @@ class TimeStampModel(models.Model):
     Abstract model with timestamp
     """
     created_at = models.DateTimeField(
-        auto_now=True, null=True,
-        verbose_name='Дата создания'
-    )
+        auto_now=True, null=True)
     updated_at = models.DateTimeField(
-        auto_now_add=True, null=True,
-        verbose_name='Дата последнего редактирования'
-    )
+        auto_now_add=True, null=True)
 
     class Meta:
         abstract = True
 
 
-class BaseModel(UUIDModel, TimeStampModel, SoftDeletionModel):
+class BaseModel(UUIDModel,
+                TimeStampModel,
+                SoftDeletionModel):
     """
     Base model for inheritance
     """
     class Meta:
         abstract = True
-
