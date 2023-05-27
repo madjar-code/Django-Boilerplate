@@ -1,36 +1,19 @@
-import os, random, string
-from io import BytesIO
-from PIL import Image
-from django.core.files import File
-from django.db.models import Model, ImageField
-from django.utils import translation
-from rest_framework.request import Request
+import random
+from django.conf import settings
+from django.db.models import Model
 
 
-def slug_unification(input_slug: str, model_class: Model) -> str:
-    """
-    Function that checks the slug
-    and makes it unique if necessary
-    """
-    letters = string.ascii_letters
-    code = random.choice(letters)
-    
-    if model_class.objects.filter(slug=input_slug).exists():
-        new_slug = f'{input_slug}-{code}'
-        return slug_unification(new_slug, model_class) 
-    return input_slug
+def _generate_code(letters: str = settings.SLUG_ALPHABET,
+                  length: int = settings.DEFAULT_SLUG_LENGTH) -> str:
+    random_code: str = ''.join(random.choice(letters)\
+                               for _ in range(length))
+    return random_code
 
 
-def delete_image(input_image: ImageField) -> None:
-    """
-    Removes image after validation
-    """
-    if input_image:
-        if os.path.isfile(input_image.path):
-            os.remove(input_image.path)
+def generate_unique_slug(prefix: str, model_class: Model) -> str:
+    code: str = _generate_code() 
 
-
-def activate_language_from_request(request: Request) -> None:
-    if 'HTTP_ACCEPT_LANGUAGE' in request.META:
-        language = request.META['HTTP_ACCEPT_LANGUAGE']
-        translation.activate(language)
+    slug = prefix + '-' + code
+    if model_class.objects.filter(slug=slug).exists():
+        return generate_unique_slug(prefix, model_class)
+    return slug
