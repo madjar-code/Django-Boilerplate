@@ -1,56 +1,50 @@
+from typing import NamedTuple
 from django.db import models
-from django.dispatch import receiver
-from django.urls import reverse
-from django.core.mail import send_mail
-from django.contrib.auth.models import\
-    AbstractBaseUser, PermissionsMixin
-from rest_framework_simplejwt.tokens import\
-    RefreshToken
-from django_rest_passwordreset.signals import\
-    reset_password_token_created
+from django.contrib.auth.models import (
+    AbstractBaseUser,
+    PermissionsMixin,
+)
+from rest_framework_simplejwt.tokens import (
+    RefreshToken,
+    AccessToken
+)
 from common.mixins.models import UUIDModel
 from .managers import UserManager
 
 
+class Tokens(NamedTuple):
+    refresh: RefreshToken
+    access: AccessToken
+
+
 class User(UUIDModel, AbstractBaseUser, PermissionsMixin):
-    # username = models.CharField(max_length=255)
-    email = models.EmailField(max_length=255,
-                              unique=True,
-                              db_index=True)
-    description = models.TextField(null=True, blank=True)
-    is_active = models.BooleanField(default=True)
+    username = models.CharField(max_length=255, unique=True)
+    email = models.EmailField(
+        max_length=255, unique=True, db_index=True)
+    first_name = models.CharField(max_length=255, blank=True, null=True)
+    last_name = models.CharField(max_length=255, blank=True, null=True)
+    avatar = models.ImageField(
+        upload_to='avatars', default='avatars/default.png'
+    )
     is_staff = models.BooleanField(default=False)
+    is_verified = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ()
-    
     objects = UserManager()
+
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = ('email', 'first_name', 'last_name')
 
     def __str__(self) -> str:
         return self.email
 
-    def tokens(self) -> dict:
-        """
-        Возврат токенов для пользователя.
-        """
-        refresh = RefreshToken.for_user(self)
-        return {
-            'refresh': str(refresh),
-            'access': str(refresh.access_token),
-        }
-    
-@receiver(reset_password_token_created)
-def password_reset_token_created(sender, instance, reset_password_token, *args, **kwargs):
-    email_plaintext_message = '{}?token={}'.\
-        format(reverse('password_reset:reset-password-request'),
-               reset_password_token.key)
-    
-    send_mail(
-        'Password Reset for {title}'.\
-            format(title='Some website title'),
-        email_plaintext_message,
-        'madzhar_80@mail.ru',
-        [reset_password_token.user.email]
-    )
+    def tokens(self) -> Tokens:
+        """Return tokens for user"""
+        refresh: RefreshToken = RefreshToken.for_user(self)
+        return Tokens(
+            refresh=str(refresh),
+            access=str(refresh.access_token)
+        )
