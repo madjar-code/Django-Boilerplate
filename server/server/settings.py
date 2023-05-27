@@ -1,4 +1,5 @@
-import environ, sys
+import os, sys, environ
+import string
 from datetime import timedelta
 from pathlib import Path
 
@@ -13,13 +14,11 @@ sys.path.append(str(PROJECT_ROOT / 'apps'))
 SECRET_KEY = env.str('SECRET_KEY')
 DEBUG = env.bool('DEBUG', default=False)
 
-DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 INSTALLED_APPS = [
     'jazzmin',    # optional
-    'modeltranslation',     # optional
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -27,6 +26,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'rest_framework_simplejwt.token_blacklist',
     'rest_framework',
     'corsheaders',
     'drf_yasg',
@@ -37,40 +37,17 @@ INSTALLED_APPS += [
     'users',
 ]
 
-gettext = lambda s: s
-LANGUAGES = (
-    ('en', gettext('English')),
-    ('ru', gettext('Russian')),
-)
-
-MODELTRANSLATION_DEFAULT_LANGUAGE = 'ru'
-
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.AllowAny',
-    ),
-    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
-    'DEFAULT_PARSER_CLASSES': (
-        'rest_framework.parsers.JSONParser',
-        'rest_framework.parsers.MultiPartParser',
-        'rest_framework.parsers.FormParser',
-    )
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema'
 }
 
 REST_USE_JWT = True
-
-SWAGGER_SETTINGS={
-    'SHOW_REQUEST_HEADERS': True,
-    'SECURITY_DEFINITIONS': {
-        'Bearer': {
-            'type': 'apiKey',
-            'name': 'Authorization',
-            'in': 'header'
-        }
-    },
-    # 'USE_SESSION_AUTH': False,
-    # 'JSON_EDITOR': True,
-}
 
 CORS_ORIGIN_ALLOW_ALL = True
 
@@ -152,10 +129,28 @@ TIME_ZONE = 'Europe/Berlin'
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = 'static/'
+SWAGGER_SETTINGS = {
+    'USE_SESSION_AUTH': False,
+    'SECURITY_DEFINITIONS': {
+        'JWT': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header'
+        }
+    }
+}
+
+# Media settings
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+
+# Static settings
+STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / 'static'
+
+# Slug settings
+SLUG_ALPHABET = string.ascii_letters
+DEFAULT_SLUG_LENGTH = 7
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 AUTH_USER_MODEL = 'users.User'
-
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
