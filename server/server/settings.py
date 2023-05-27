@@ -146,9 +146,9 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
 
-LANGUAGE_CODE = 'ru'
+LANGUAGE_CODE = 'en'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Berlin'
 USE_I18N = True
 USE_TZ = True
 
