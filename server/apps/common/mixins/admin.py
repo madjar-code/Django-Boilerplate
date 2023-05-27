@@ -1,6 +1,12 @@
+from enum import Enum
 from django.contrib import admin, messages
 from django.http.request import HttpRequest
 from django.db.models import QuerySet
+
+
+class Messages(str, Enum):
+    DELETE_COMPLETE = 'Selected entities are deleted'
+    RESTORE_COMPLETE = 'Selected entities are restored'
 
 
 class ReadOnlyFieldsAdmin(admin.ModelAdmin):
@@ -21,17 +27,18 @@ class SoftDeletionAdmin(admin.ModelAdmin):
                     queryset: QuerySet) -> None:
         queryset.update(is_active=False)
         messages.success(
-            request, 'Selected entities are deleted')
+            request, Messages.DELETE_COMPLETE.value)
 
     def restore(self, request: HttpRequest,
                     queryset: QuerySet) -> None:
         queryset.update(is_active=True)
         messages.success(
-            request, 'Selected entities are restored')
+            request, Messages.RESTORE_COMPLETE)
 
     soft_delete.short_description = 'Soft Deletion'
     restore.short_description = 'Restoring'
 
 
-class BaseAdmin(ReadOnlyFieldsAdmin, SoftDeletionAdmin):
+class BaseAdmin(ReadOnlyFieldsAdmin,
+                SoftDeletionAdmin):
     pass
